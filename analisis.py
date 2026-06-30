@@ -36,26 +36,36 @@ df['tasa_retiro'] = (df['retirado'] / df['total'] * 100).round(1)
 print("\n--- Tasas porcentuales ---")
 print(df[['tipo_colegio', 'tasa_aprobacion', 'tasa_reprobacion', 'tasa_retiro']])
 
-# Creamos una figura de 10x6 pulgadas (tamaño del lienzo del gráfico)
-plt.figure(figsize=(10, 6))
+# Gráfico profesional: tasa de reprobación
+fig, ax = plt.subplots(figsize=(12, 6))
 
-# Gráfico de barras: eje X = tipo de colegio, eje Y = tasa de aprobación
-plt.bar(df['tipo_colegio'], df['tasa_aprobacion'], color='steelblue')
+colores = ['#e74c3c' if x == df['tasa_reprobacion'].max()
+           else '#2ecc71' if x == df['tasa_reprobacion'].min()
+           else '#95a5a6' for x in df['tasa_reprobacion']]
 
-# Etiqueta del eje Y
-plt.ylabel('Tasa de aprobación (%)')
+bars = ax.bar(df['tipo_colegio'], df['tasa_reprobacion'],
+              color=colores, edgecolor='white', linewidth=0.8)
 
-# Título del gráfico
-plt.title('Tasa de aprobación escolar por tipo de dependencia administrativa - Chile 2025')
+# Anotaciones encima de cada barra
+for bar, val in zip(bars, df['tasa_reprobacion']):
+    ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.05,
+            f'{val}%', ha='center', va='bottom', fontsize=11, fontweight='bold')
 
-# Rotamos las etiquetas del eje X 20° para que no se superpongan
-# ha='right' alinea el texto a la derecha del punto de rotación
-plt.xticks(rotation=20, ha='right')
+# Línea de promedio
+promedio = df['tasa_reprobacion'].mean()
+ax.axhline(promedio, color='#2c3e50', linestyle='--', linewidth=1.2, alpha=0.7)
+ax.text(4.5, promedio + 0.08, f'Promedio: {promedio:.1f}%',
+        ha='right', fontsize=9, color='#2c3e50')
 
-# Ajusta automáticamente los márgenes para que nada quede cortado
+ax.set_title('Tasa de reprobación escolar por dependencia administrativa\nChile 2025',
+             fontsize=14, fontweight='bold', pad=20)
+ax.set_ylabel('Tasa de reprobación (%)', fontsize=11)
+ax.set_ylim(0, 6)
+ax.tick_params(axis='x', labelsize=9)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+
+plt.xticks(rotation=15, ha='right')
 plt.tight_layout()
-
-# Guarda el gráfico como archivo PNG en la misma carpeta donde corre el script
-plt.savefig('tasa_aprobacion.png')
-
-print("\nGráfico guardado como tasa_aprobacion.png")
+plt.savefig('tasa_reprobacion.png', dpi=150, bbox_inches='tight')
+print("Gráfico guardado")
